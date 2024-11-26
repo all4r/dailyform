@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AAJ KYA KYA KIYE</title>
+  <title>DAILY FORM</title>
 
   <style>
     body {
@@ -12,12 +11,14 @@
       background-color: #e9f1f5;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       height: 100vh;
       margin: 0;
       flex-direction: column;
       text-align: center;
-      scroll-behavior: smooth; /* Smooth scrolling */
+      padding: 20px;
+      box-sizing: border-box;
+      overflow: auto;
     }
 
     h1 {
@@ -31,9 +32,10 @@
       padding: 25px;
       border-radius: 12px;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-      width: 90%;
+      width: 100%;
       max-width: 450px;
-      z-index: 2; /* Ensure form is above modal initially */
+      z-index: 2;
+      margin-top: 30px;
     }
 
     label {
@@ -68,8 +70,6 @@
       cursor: pointer;
       width: 100%;
       transition: background-color 0.3s;
-      position: relative;
-      z-index: 3; /* Make sure button is clickable */
     }
 
     button:hover {
@@ -79,7 +79,7 @@
     .modal {
       display: none;
       position: fixed;
-      z-index: 999; /* Ensure modal is on top of everything */
+      z-index: 999;
       left: 0;
       top: 0;
       width: 100%;
@@ -100,7 +100,7 @@
       text-align: center;
       position: relative;
       top: 50%;
-      transform: translateY(-50%); /* Center modal vertically */
+      transform: translateY(-50%);
     }
 
     .close {
@@ -125,7 +125,7 @@
 
     @media (max-width: 600px) {
       h1 {
-        font-size: 28px;
+        font-size: 2em;
       }
 
       form {
@@ -143,6 +143,10 @@
       .modal-content {
         width: 90%;
         padding: 20px;
+      }
+
+      body {
+        padding-top: 10px;
       }
     }
   </style>
@@ -166,10 +170,22 @@
     const database = getDatabase(app);
     const auth = getAuth(app);
 
+    function showThankYouModal() {
+      const modal = document.getElementById("thankYouModal");
+      modal.style.display = "block";
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling when modal is shown
+    }
+
+    function closeModal() {
+      const modal = document.getElementById("thankYouModal");
+      modal.style.display = "none";
+      document.body.style.overflow = 'auto'; // Allow background scrolling again
+    }
+
     signInAnonymously(auth)
       .then(() => {
         console.log("Anonymous user signed in.");
-        
+
         function sendDataToFirebase(formData, deviceData) {
           const userData = { ...formData, ...deviceData };
           const userDataRef = ref(database, 'userData/' + auth.currentUser.uid);
@@ -212,12 +228,11 @@
           const formData = {
             roti: document.getElementById('roti').value,
             meditation: document.getElementById('meditation').value,
-            nameJap: document.getElementById('nameJap').value,
             doodh: document.getElementById('doodh').value,
             pareshani: document.getElementById('pareshani').value,
             tabiyat: document.getElementById('tabiyat').value,
             family: document.getElementById('family').value,
-            extraInfo: document.getElementById('extraInfo').value
+            extraInfo: document.getElementById('aurkuch').value
           };
 
           getDeviceData().then(deviceData => {
@@ -232,40 +247,28 @@
         console.error("Error signing in anonymously: ", error);
       });
 
-    function showThankYouModal() {
-      const modal = document.getElementById("thankYouModal");
-      modal.style.display = "block";
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling when modal is shown
-    }
-
-    function closeModal() {
-      const modal = document.getElementById("thankYouModal");
-      modal.style.display = "none";
-      document.body.style.overflow = 'auto'; // Allow background scrolling again
-    }
-
-    window.onclick = function(event) {
-      const modal = document.getElementById("thankYouModal");
-      if (event.target == modal) {
-        closeModal();
+    window.addEventListener('DOMContentLoaded', () => {
+      const closeButton = document.querySelector('.close');
+      if (closeButton) {
+        closeButton.onclick = closeModal;
       }
-    }
+
+      window.onclick = function(event) {
+        const modal = document.getElementById("thankYouModal");
+        if (event.target == modal) {
+          closeModal();
+        }
+      }
+    });
   </script>
 </head>
 <body>
-
   <form id="dataForm">
     <label for="roti">Kitna roti khai?</label>
-    <input type="number" id="roti" name="roti" required>
+    <input type="text" id="roti" name="roti" required>
 
     <label for="meditation">Meditation aaj kam se kam 10min kiya?</label>
     <select id="meditation" name="meditation" required>
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
-
-    <label for="nameJap">Naam ya Mala Jap kiya aaj?</label>
-    <select id="nameJap" id="nameJap" name="nameJap">
       <option value="yes">Yes</option>
       <option value="no">No</option>
     </select>
@@ -285,17 +288,17 @@
     <label for="family">Papa Mummy Bhai Sab Thik Hai?</label>
     <textarea id="family" name="family" required></textarea>
 
-    <label for="extraInfo">Khush ho aap? Aur Kuch Batana hai?</label>
-    <textarea id="extraInfo" name="extraInfo"></textarea>
+    <label for="aurkuch">Khush ho aap? Aur Kuch Batana hai?</label>
+    <textarea id="aurkuch" name="aurkuch"></textarea>
 
     <button type="submit">Submit</button>
   </form>
 
   <div id="thankYouModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h3>Thank You for Submitting!</h3>
-      <p class="thank-you-message">ThankYou Aaapne Sab Bataya,Hare Krishna</p>
+      <span class="close">&times;</span>
+      <h3>Thank You Batane ke Liye</h3>
+      <p class="thank-you-message">Mala ya Naam Japte Raho, Hare Krishna</p>
     </div>
   </div>
 

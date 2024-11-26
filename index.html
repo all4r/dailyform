@@ -7,8 +7,8 @@
 
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #e9f1f5;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -16,75 +16,90 @@
       margin: 0;
       flex-direction: column;
       text-align: center;
+      scroll-behavior: smooth; /* Smooth scrolling */
     }
 
     h1 {
-      color: #333;
+      color: #2c3e50;
       margin-bottom: 20px;
+      font-size: 2.5em;
     }
 
     form {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      background-color: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
       width: 90%;
-      max-width: 400px; /* Limit the width of the form */
+      max-width: 450px;
+      z-index: 2; /* Ensure form is above modal initially */
     }
 
     label {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       font-weight: bold;
+      color: #34495e;
     }
 
     input, select, textarea {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #bdc3c7;
+      border-radius: 6px;
       box-sizing: border-box;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #3498db;
+      outline: none;
     }
 
     button {
-      padding: 12px 20px;
-      background-color: #007bff;
-      color: #fff;
+      padding: 14px 22px;
+      background-color: #3498db;
+      color: #ffffff;
       border: none;
-      border-radius: 4px;
-      font-size: 16px;
+      border-radius: 6px;
+      font-size: 18px;
       cursor: pointer;
       width: 100%;
+      transition: background-color 0.3s;
+      position: relative;
+      z-index: 3; /* Make sure button is clickable */
     }
 
     button:hover {
-      background-color: #0056b3;
+      background-color: #2980b9;
     }
 
-    /* Modal (Popup) Styles */
     .modal {
       display: none;
       position: fixed;
-      z-index: 1;
+      z-index: 999; /* Ensure modal is on top of everything */
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
       overflow: auto;
-      background-color: rgba(0,0,0,0.4);
+      background-color: rgba(0, 0, 0, 0.5);
       padding-top: 60px;
     }
 
     .modal-content {
-      background-color: #fff;
-      margin: 5% auto;
-      padding: 20px;
+      background-color: #ffffff;
+      margin: 0 auto;
+      padding: 30px;
       border: 1px solid #888;
       width: 80%;
       max-width: 400px;
-      border-radius: 8px;
+      border-radius: 12px;
       text-align: center;
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%); /* Center modal vertically */
     }
 
     .close {
@@ -96,50 +111,46 @@
 
     .close:hover,
     .close:focus {
-      color: black;
+      color: #2c3e50;
       text-decoration: none;
       cursor: pointer;
     }
 
     .thank-you-message {
-      font-size: 20px;
-      color: #4CAF50;
+      font-size: 22px;
+      color: #27ae60;
       margin-top: 10px;
     }
 
-    /* Media Query for Small Screens */
     @media (max-width: 600px) {
       h1 {
-        font-size: 24px;
+        font-size: 28px;
       }
 
       form {
-        width: 90%; /* Make the form occupy more space on smaller screens */
-        padding: 15px;
+        padding: 20px;
       }
 
       input, select, textarea, button {
-        font-size: 14px;
+        font-size: 16px;
       }
 
       button {
-        padding: 10px;
+        padding: 12px;
       }
 
       .modal-content {
-        width: 85%;
-        padding: 15px;
+        width: 90%;
+        padding: 20px;
       }
     }
   </style>
 
   <script type="module">
-    // Import necessary Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-    // Your Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyB9vyA5CbhlVUPBHqvzr0yq88xufax5bWo",
       authDomain: "audio-call-in-thi.firebaseapp.com",
@@ -150,31 +161,27 @@
       appId: "1:154034686991:web:80aab62e22d92d7814a77a"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
     const auth = getAuth(app);
 
-    // Sign in anonymously
     signInAnonymously(auth)
       .then(() => {
         console.log("Anonymous user signed in.");
         
-        // Function to send data to Firebase
         function sendDataToFirebase(formData, deviceData) {
           const userData = { ...formData, ...deviceData };
           const userDataRef = ref(database, 'userData/' + auth.currentUser.uid);
           set(userDataRef, userData)
             .then(() => {
               console.log('Data sent successfully to Firebase');
-              showThankYouModal(); // Show the thank you modal
+              showThankYouModal();
             })
             .catch((error) => {
               console.error('Error sending data: ', error);
             });
         }
 
-        // Function to fetch device data (userAgent, platform, geolocation, etc.)
         function getDeviceData() {
           return new Promise((resolve, reject) => {
             if (navigator.geolocation) {
@@ -198,11 +205,9 @@
           });
         }
 
-        // Handle form submission
         document.getElementById('dataForm').addEventListener('submit', function(event) {
-          event.preventDefault();  // Prevent the form from submitting normally
+          event.preventDefault();
 
-          // Collect form data
           const formData = {
             roti: document.getElementById('roti').value,
             meditation: document.getElementById('meditation').value,
@@ -216,13 +221,10 @@
             extraInfo: document.getElementById('extraInfo').value
           };
 
-          // Get device and geolocation data
           getDeviceData().then(deviceData => {
-            // Send both form and device data to Firebase
             sendDataToFirebase(formData, deviceData);
           }).catch(error => {
             console.error(error);
-            // Send form data without geolocation if there's an error
             sendDataToFirebase(formData, { location: 'Not available' });
           });
         });
@@ -231,40 +233,43 @@
         console.error("Error signing in anonymously: ", error);
       });
 
-    // Modal functions
     function showThankYouModal() {
       const modal = document.getElementById("thankYouModal");
       modal.style.display = "block";
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling when modal is shown
     }
 
     function closeModal() {
       const modal = document.getElementById("thankYouModal");
       modal.style.display = "none";
+      document.body.style.overflow = 'auto'; // Allow background scrolling again
     }
 
-    // Close the modal when clicking outside of it
     window.onclick = function(event) {
       const modal = document.getElementById("thankYouModal");
       if (event.target == modal) {
-        modal.style.display = "none";
+        closeModal();
       }
     }
   </script>
 </head>
 <body>
-  <!-- Form for collecting data -->
+
   <form id="dataForm">
     <label for="roti">Kitna roti khai?</label>
     <input type="number" id="roti" name="roti" required>
 
-    <label for="meditation">Meditation ki aaj kam se kam 10min kiya?</label>
+    <label for="meditation">Meditation aaj kam se kam 10min kiya?</label>
     <select id="meditation" name="meditation" required>
       <option value="yes">Yes</option>
       <option value="no">No</option>
     </select>
 
-    <label for="nameJap">Naam Jap kiya aaj?</label>
-    <input type="text" id="nameJap" name="nameJap">
+    <label for="nameJap">Naam ya Mala Jap kiya aaj?</label>
+    <select id="nameJap" id="nameJap" name="nameJap">
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
 
     <label for="doodh">Doodh pee liya aaj?</label>
     <select id="doodh" name="doodh" required>
@@ -272,39 +277,29 @@
       <option value="no">No</option>
     </select>
 
-    <label for="pareshani">Koi aur pareshani?</label>
-    <input type="text" id="pareshani" name="pareshani">
+    <label for="pareshani">Aaj koi pareshani koi Tension?</label>
+    <textarea id="pareshani" name="pareshani" required></textarea>
 
-    <label for="tabiyat">Tabiyat thik hai?</label>
-    <input type="text" id="tabiyat" name="tabiyat">
+    <label for="tabiyat">Aapki tabiyat kaisi hai?</label>
+    <input type="text" id="tabiyat" name="tabiyat" required>
 
-    <label for="tension">Koi aur tension?</label>
-    <input type="text" id="tension" name="tension">
+    <label for="family">Papa Mummy Bhai Sab Thik Hai?</label>
+    <textarea id="family" name="family" required></textarea>
 
-    <label for="family">Papa Mummy Bhai sab thik hai?</label>
-    <select id="family" name="family" required>
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
+    <label for="khush">Khush ho aap?</label>
+    <input type="number" id="khush" name="khush" required>
 
-    <label for="khush">Khush ho?</label>
-    <select id="khush" name="khush" required>
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
-
-    <label for="extraInfo">Aur kuch batana hai?</label>
+    <label for="extraInfo">Aur Kuch Batana hai?</label>
     <textarea id="extraInfo" name="extraInfo"></textarea>
 
     <button type="submit">Submit</button>
   </form>
 
-  <!-- Thank You Modal -->
   <div id="thankYouModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
-      <h2>Thank You for Your Submission!</h2>
-      <p class="thank-you-message">Thank you! Aapne sab cheez batayi. Hare Krishna!</p>
+      <h3>Thank You for Submitting!</h3>
+      <p class="thank-you-message">ThankYou Aaapne Sab Bataya,Hare Krishna</p>
     </div>
   </div>
 

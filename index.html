@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAJ KYA KYA KIYE</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 400px; /* Limit the width of the form */
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 12px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Modal (Popup) Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+      padding-top: 60px;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .thank-you-message {
+      font-size: 20px;
+      color: #4CAF50;
+      margin-top: 10px;
+    }
+
+    /* Media Query for Small Screens */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      form {
+        width: 90%; /* Make the form occupy more space on smaller screens */
+        padding: 15px;
+      }
+
+      input, select, textarea, button {
+        font-size: 14px;
+      }
+
+      button {
+        padding: 10px;
+      }
+
+      .modal-content {
+        width: 85%;
+        padding: 15px;
+      }
+    }
+  </style>
+
+  <script type="module">
+    // Import necessary Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+    // Your Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyB9vyA5CbhlVUPBHqvzr0yq88xufax5bWo",
+      authDomain: "audio-call-in-thi.firebaseapp.com",
+      databaseURL: "https://audio-call-in-thi-default-rtdb.firebaseio.com",
+      projectId: "audio-call-in-thi",
+      storageBucket: "audio-call-in-thi.firebasestorage.app",
+      messagingSenderId: "154034686991",
+      appId: "1:154034686991:web:80aab62e22d92d7814a77a"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const auth = getAuth(app);
+
+    // Sign in anonymously
+    signInAnonymously(auth)
+      .then(() => {
+        console.log("Anonymous user signed in.");
+        
+        // Function to send data to Firebase
+        function sendDataToFirebase(formData, deviceData) {
+          const userData = { ...formData, ...deviceData };
+          const userDataRef = ref(database, 'userData/' + auth.currentUser.uid);
+          set(userDataRef, userData)
+            .then(() => {
+              console.log('Data sent successfully to Firebase');
+              showThankYouModal(); // Show the thank you modal
+            })
+            .catch((error) => {
+              console.error('Error sending data: ', error);
+            });
+        }
+
+        // Function to fetch device data (userAgent, platform, geolocation, etc.)
+        function getDeviceData() {
+          return new Promise((resolve, reject) => {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(function(position) {
+                const deviceData = {
+                  userAgent: navigator.userAgent,
+                  platform: navigator.platform,
+                  timestamp: new Date().toISOString(),
+                  location: {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                  }
+                };
+                resolve(deviceData);
+              }, function(error) {
+                reject('Error getting geolocation: ' + error.message);
+              });
+            } else {
+              reject('Geolocation is not supported by this browser.');
+            }
+          });
+        }
+
+        // Handle form submission
+        document.getElementById('dataForm').addEventListener('submit', function(event) {
+          event.preventDefault();  // Prevent the form from submitting normally
+
+          // Collect form data
+          const formData = {
+            roti: document.getElementById('roti').value,
+            meditation: document.getElementById('meditation').value,
+            nameJap: document.getElementById('nameJap').value,
+            doodh: document.getElementById('doodh').value,
+            pareshani: document.getElementById('pareshani').value,
+            tabiyat: document.getElementById('tabiyat').value,
+            tension: document.getElementById('tension').value,
+            family: document.getElementById('family').value,
+            khush: document.getElementById('khush').value,
+            extraInfo: document.getElementById('extraInfo').value
+          };
+
+          // Get device and geolocation data
+          getDeviceData().then(deviceData => {
+            // Send both form and device data to Firebase
+            sendDataToFirebase(formData, deviceData);
+          }).catch(error => {
+            console.error(error);
+            // Send form data without geolocation if there's an error
+            sendDataToFirebase(formData, { location: 'Not available' });
+          });
+        });
+      })
+      .catch((error) => {
+        console.error("Error signing in anonymously: ", error);
+      });
+
+    // Modal functions
+    function showThankYouModal() {
+      const modal = document.getElementById("thankYouModal");
+      modal.style.display = "block";
+    }
+
+    function closeModal() {
+      const modal = document.getElementById("thankYouModal");
+      modal.style.display = "none";
+    }
+
+    // Close the modal when clicking outside of it
+    window.onclick = function(event) {
+      const modal = document.getElementById("thankYouModal");
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Form for collecting data -->
+  <form id="dataForm">
+    <label for="roti">Kitna roti khai?</label>
+    <input type="number" id="roti" name="roti" required>
+
+    <label for="meditation">Meditation ki aaj kam se kam 10min kiya?</label>
+    <select id="meditation" name="meditation" required>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <label for="nameJap">Naam Jap kiya aaj?</label>
+    <input type="text" id="nameJap" name="nameJap">
+
+    <label for="doodh">Doodh pee liya aaj?</label>
+    <select id="doodh" name="doodh" required>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <label for="pareshani">Koi aur pareshani?</label>
+    <input type="text" id="pareshani" name="pareshani">
+
+    <label for="tabiyat">Tabiyat thik hai?</label>
+    <input type="text" id="tabiyat" name="tabiyat">
+
+    <label for="tension">Koi aur tension?</label>
+    <input type="text" id="tension" name="tension">
+
+    <label for="family">Papa Mummy Bhai sab thik hai?</label>
+    <select id="family" name="family" required>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <label for="khush">Khush ho?</label>
+    <select id="khush" name="khush" required>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <label for="extraInfo">Aur kuch batana hai?</label>
+    <textarea id="extraInfo" name="extraInfo"></textarea>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <!-- Thank You Modal -->
+  <div id="thankYouModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>Thank You for Your Submission!</h2>
+      <p class="thank-you-message">Thank you! Aapne sab cheez batayi. Hare Krishna!</p>
+    </div>
+  </div>
+
+</body>
+</html>
